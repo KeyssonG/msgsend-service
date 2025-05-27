@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msgsend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msgsend
+  template:
+    metadata:
+      labels:
+        app: msgsend
+    spec:
+      containers:
+        - name: msgsend-container
+          image: keyssong/msgsend:latest  # 🔹 Buscar no Docker Hub
+          imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
+          ports:
+            - containerPort: 8088
