@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import keysson.apis.msgsend.model.SendMailQueueEmpresa;
 import keysson.apis.msgsend.model.SendMailQueueFuncionario;
+import keysson.apis.msgsend.model.UserMail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+
 
     public void sendEmailEmpresa(SendMailQueueEmpresa request) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
@@ -51,19 +53,47 @@ public class EmailService {
                 Olá %s,
                 
                 
-                Seja bem vindo(a) ao time Multithread!
+               Seja bem vindo(a) ao Multithread!
                 
-                A sua conta já está ativa, para fazer o seu login, acesse o link abaixo:
+                Para acessar a plataforma, click no link abaixo:
                 
-                http://localhost:31008/login
+                http://localhost:31006/login
                 
-                Utilize o seu login e senha.
+                Para relizar o login, use o seu username e senha junto com o id da sua empresa + 
                 
                 Atenciosamente,
                 Equipe da Multithread
                 """, request.getUsername());
 
         helper.setTo(request.getEmail());
+        helper.setSubject(subject);
+        helper.setText(text, false);
+
+        mailSender.send(message);
+
+    }
+
+    public void sendEmailAtivaConta(UserMail userMail) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "Bem-vindo(a), " + userMail.getUsername() + "!";
+        String text = String.format("""
+            Olá %s,
+
+            Seja bem-vindo(a) ao time Multithread!
+
+            Sua conta já está cadastrada. Para fazer login, acesse o link abaixo:
+
+            http://localhost:31006/login
+
+            Utilize seu login, senha e o ID da sua empresa: %s
+
+            Atenciosamente,
+            Equipe Multithread
+            """, userMail.getUsername(), userMail.getId());
+
+        helper.setTo(userMail.getEmail());
         helper.setSubject(subject);
         helper.setText(text, false);
 
