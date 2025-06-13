@@ -50,7 +50,7 @@ public class EmailConsumer {
             UserMail userMail = msgRepository.getUserMail(request.getNumeroConta());
 
             switch (request.getNewStatus()) {
-                case 1:
+                case 2:
                     emailService.sendEmailAtivaConta(userMail);
             }
 
