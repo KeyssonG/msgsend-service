@@ -54,7 +54,7 @@ public class EmailConsumer {
                     emailService.sendEmailAtivaConta(userMail);
             }
 
-            System.out.println("E-mail enviado para: " + userMail.getMail());
+            System.out.println("E-mail enviado para: " + userMail.getEmail());
         } catch (Exception e) {
             System.err.println("Erro ao processar mensagem: " + e.getMessage());
         }
