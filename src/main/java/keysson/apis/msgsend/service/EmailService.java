@@ -3,7 +3,8 @@ package keysson.apis.msgsend.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import keysson.apis.msgsend.model.EmailRequest;
+import keysson.apis.msgsend.model.SendMailQueueEmpresa;
+import keysson.apis.msgsend.model.SendMailQueueFuncionario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,13 +14,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailService {
 
-        private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-        public void sendEmail(EmailRequest request) throws MessagingException, MessagingException {
+    public void sendEmailEmpresa(SendMailQueueEmpresa request) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        String subject= "Bem-vindo(a), " + request.getName() + "!";
+        String subject = "Bem-vindo(a), " + request.getName() + "!";
         String text = String.format("""
                 Olá %s,
                 
@@ -38,5 +39,35 @@ public class EmailService {
         helper.setText(text, false);
 
         mailSender.send(message);
+
+    }
+
+    public void sendEmailFuncionario(SendMailQueueFuncionario request) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "Bem-vindo(a), " + request.getUsername() + "!";
+        String text = String.format("""
+                Olá %s,
+                
+                
+                Seja bem vindo(a) ao time Multithread!
+                
+                A sua conta já está ativa, para fazer o seu login, acesse o link abaixo:
+                
+                http://localhost:31008/login
+                
+                Utilize o seu login e senha.
+                
+                Atenciosamente,
+                Equipe da Multithread
+                """, request.getUsername());
+
+        helper.setTo(request.getEmail());
+        helper.setSubject(subject);
+        helper.setText(text, false);
+
+        mailSender.send(message);
+
     }
 }
