@@ -13,7 +13,7 @@ public class UserMailRowMapper implements RowMapper<UserMail> {
     @Override
     public UserMail mapRow(ResultSet rs, int rowNum) throws SQLException {
         UserMail userMail = new UserMail();
-        userMail.setId(Integer.parseInt("company_id"));
+        userMail.setId("company_id");
         userMail.setUsername("username");
         userMail.setEmail("email");
 
