@@ -31,7 +31,7 @@ public class EmailConsumer {
     public void processMessageFuncionario(String messageJson) {
         try {
             SendMailQueueFuncionario request = objectMapper.readValue(messageJson, SendMailQueueFuncionario.class);
-            emailService.sendEmail(request);
+            emailService.sendEmailFuncionario(request);
             System.out.println("E-mail enviado para: " + request.getEmail());
         } catch (Exception e) {
             System.err.println("Erro ao processar mensagem: " + e.getMessage());
