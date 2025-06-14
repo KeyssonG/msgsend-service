@@ -55,15 +55,15 @@ public class EmailService {
                 
                Seja bem vindo(a) ao Multithread!
                 
-                Para acessar a plataforma, click no link abaixo:
+                Para acessar a plataforma, clique no link abaixo:
                 
-                http://localhost:31006/login
+                http://localhost:31008/login
                 
-                Para relizar o login, use o seu username e senha junto com o id da sua empresa + 
+                Para realizar o login, use o seu username: %s e senha: %s.
                 
                 Atenciosamente,
                 Equipe da Multithread
-                """, request.getUsername());
+                """, request.getUsername(), request.getUsername(), request.getPassword());
 
         helper.setTo(request.getEmail());
         helper.setSubject(subject);
