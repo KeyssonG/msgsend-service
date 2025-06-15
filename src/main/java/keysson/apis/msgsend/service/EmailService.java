@@ -59,11 +59,11 @@ public class EmailService {
                 
                 http://localhost:31008/login
                 
-                Para realizar o login, use o seu username: %s e senha: %s.
+                Para realizar o login, use o seu username: %s e senha: %s
                 
                 Atenciosamente,
                 Equipe da Multithread
-                """, request.getUsername(), request.getUsername(), request.getPassword());
+                """, request.getUsername(), request.getUsername(), request.getPlainPassword());
 
         helper.setTo(request.getEmail());
         helper.setSubject(subject);
