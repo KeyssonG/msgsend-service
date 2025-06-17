@@ -59,7 +59,9 @@ public class EmailService {
                 
                 http://localhost:31008/login
                 
-                Para realizar o login, use o seu username: %s e senha: %s
+                Para realizar o primeiro login, use o seu username: %s e senha provisória: %s
+                
+                Você deve definir uma nova senha no seu primeiro acesso.
                 
                 Atenciosamente,
                 Equipe da Multithread
