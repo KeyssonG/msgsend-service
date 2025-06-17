@@ -65,7 +65,7 @@ public class EmailService {
                 
                 Atenciosamente,
                 Equipe da Multithread
-                """, request.getUsername(), request.getUsername(), request.getPassword());
+                """, request.getUsername(), request.getUsername(), request.getPlainPassword());
 
         helper.setTo(request.getEmail());
         helper.setSubject(subject);
