@@ -1,7 +1,11 @@
 package keysson.apis.msgsend.consumer;
 
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import keysson.apis.msgsend.model.SendMailQueueAlteraStatus;
 import keysson.apis.msgsend.model.SendMailQueueEmpresa;
 import keysson.apis.msgsend.model.SendMailQueueFuncionario;
@@ -9,8 +13,6 @@ import keysson.apis.msgsend.model.UserMail;
 import keysson.apis.msgsend.repository.MsgRepository;
 import keysson.apis.msgsend.service.EmailService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor 
@@ -52,6 +54,8 @@ public class EmailConsumer {
             switch (request.getNewStatus()) {
                 case 2:
                     emailService.sendEmailAtivaConta(userMail);
+                case 3: 
+                    emailService.sendEmailContaRejeitada(userMail);
             }
 
             System.out.println("E-mail enviado para: " + userMail.getEmail());

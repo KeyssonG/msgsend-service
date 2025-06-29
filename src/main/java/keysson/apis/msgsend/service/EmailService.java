@@ -1,15 +1,16 @@
 package keysson.apis.msgsend.service;
 
 
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import keysson.apis.msgsend.model.SendMailQueueEmpresa;
 import keysson.apis.msgsend.model.SendMailQueueFuncionario;
 import keysson.apis.msgsend.model.UserMail;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -101,5 +102,26 @@ public class EmailService {
 
         mailSender.send(message);
 
+    }
+
+    public void sendEmailContaRejeitada(UserMail userMail) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "Conta não aprovada";
+        String text = String.format("""
+            Olá %s,
+
+            Sua conta não foi aprovada. Para mais informações, entre em contato com a equipe Multithread.
+
+            Atenciosamente,
+            Equipe Multithread
+            """, userMail.getUsername());
+
+        helper.setTo(userMail.getEmail());
+        helper.setSubject(subject);
+        helper.setText(text, false);
+
+        mailSender.send(message);
     }
 }
