@@ -112,7 +112,8 @@ public class EmailService {
         String text = String.format("""
             Olá %s,
 
-            Sua conta não foi aprovada. Para mais informações, entre em contato com a equipe Multithread.
+            Sua conta não foi aprovada neste momento.
+            Para mais informações, entre em contato com a equipe Multithread.
 
             Atenciosamente,
             Equipe Multithread
