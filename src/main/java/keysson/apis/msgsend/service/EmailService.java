@@ -1,6 +1,7 @@
 package keysson.apis.msgsend.service;
 
 
+import keysson.apis.msgsend.model.SendMailQueueFuncionarioCliente;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,37 @@ public class EmailService {
                 Atenciosamente,
                 Equipe da Multithread
                 """, request.getUsername(), request.getUsername(), request.getPlainPassword());
+
+        helper.setTo(request.getEmail());
+        helper.setSubject(subject);
+        helper.setText(text, false);
+
+        mailSender.send(message);
+
+    }
+
+    public void sendEmailFuncionarioCliente(SendMailQueueFuncionarioCliente request) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "Bem-vindo(a), " + request.getUsername() + "!";
+        String text = String.format("""
+                Olá %s,
+                
+                
+               Seja bem vindo(a) ao Multithread!
+                
+                Para acessar a plataforma, clique no link abaixo:
+                
+                http://localhost:31006/login
+                
+                Para realizar o primeiro login, use o seu username: %s e senha provisória: %s e o ID da sua empresa: %s
+                
+                Você deve definir uma nova senha no seu primeiro acesso.
+                
+                Atenciosamente,
+                Equipe da Multithread
+                """, request.getUsername(), request.getUsername(), request.getPlainPassword(), request.getIdEmpresa());
 
         helper.setTo(request.getEmail());
         helper.setSubject(subject);

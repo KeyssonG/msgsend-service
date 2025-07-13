@@ -1,15 +1,12 @@
 package keysson.apis.msgsend.consumer;
 
 
+import keysson.apis.msgsend.model.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import keysson.apis.msgsend.model.SendMailQueueAlteraStatus;
-import keysson.apis.msgsend.model.SendMailQueueEmpresa;
-import keysson.apis.msgsend.model.SendMailQueueFuncionario;
-import keysson.apis.msgsend.model.UserMail;
 import keysson.apis.msgsend.repository.MsgRepository;
 import keysson.apis.msgsend.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +35,17 @@ public class EmailConsumer {
         try {
             SendMailQueueFuncionario request = objectMapper.readValue(messageJson, SendMailQueueFuncionario.class);
             emailService.sendEmailFuncionario(request);
+            System.out.println("E-mail enviado para: " + request.getEmail());
+        } catch (Exception e) {
+            System.err.println("Erro ao processar mensagem: " + e.getMessage());
+        }
+    }
+
+    @RabbitListener(queues = "funcionario-cliente.fila")
+    public void processMessageFuncionarioCliente(String messageJson) {
+        try {
+            SendMailQueueFuncionarioCliente request = objectMapper.readValue(messageJson, SendMailQueueFuncionarioCliente.class);
+            emailService.sendEmailFuncionarioCliente(request);
             System.out.println("E-mail enviado para: " + request.getEmail());
         } catch (Exception e) {
             System.err.println("Erro ao processar mensagem: " + e.getMessage());
