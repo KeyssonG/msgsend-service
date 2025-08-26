@@ -20,38 +20,56 @@ public class EmailConsumer {
     private final MsgRepository msgRepository;
 
     @RabbitListener(queues = "empresa.fila")
-    public void processMessageEmpresa(String messageJson) throws Exception {
-        SendMailQueueEmpresa request = objectMapper.readValue(messageJson, SendMailQueueEmpresa.class);
-        emailService.sendEmailEmpresa(request);
-        System.out.println("E-mail enviado para: " + request.getEmail());
-
+    public void processMessageEmpresa(String messageJson) {
+        try {
+            SendMailQueueEmpresa request = objectMapper.readValue(messageJson, SendMailQueueEmpresa.class);
+            emailService.sendEmailEmpresa(request);
+            System.out.println("E-mail enviado para: " + request.getEmail());
+        } catch (Exception e) {
+            System.err.println("Falha ao enviar e-mail para empresa: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @RabbitListener(queues = "funcionario.fila")
-    public void processMessageFuncionario(String messageJson) throws Exception {
-        SendMailQueueFuncionario request = objectMapper.readValue(messageJson, SendMailQueueFuncionario.class);
-        emailService.sendEmailFuncionario(request);
-        System.out.println("E-mail enviado para: " + request.getEmail());
-
+    public void processMessageFuncionario(String messageJson) {
+        try {
+            SendMailQueueFuncionario request = objectMapper.readValue(messageJson, SendMailQueueFuncionario.class);
+            emailService.sendEmailFuncionario(request);
+            System.out.println("E-mail enviado para: " + request.getEmail());
+        } catch (Exception e) {
+            System.err.println("Falha ao enviar e-mail para funcionário: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @RabbitListener(queues = "funcionario-cliente.fila")
-    public void processMessageFuncionarioCliente(String messageJson) throws Exception {
-        SendMailQueueFuncionarioCliente request = objectMapper.readValue(messageJson, SendMailQueueFuncionarioCliente.class);
-        emailService.sendEmailFuncionarioCliente(request);
-        System.out.println("E-mail enviado para: " + request.getEmail());
+    public void processMessageFuncionarioCliente(String messageJson) {
+        try {
+            SendMailQueueFuncionarioCliente request = objectMapper.readValue(messageJson, SendMailQueueFuncionarioCliente.class);
+            emailService.sendEmailFuncionarioCliente(request);
+            System.out.println("E-mail enviado para: " + request.getEmail());
+        } catch (Exception e) {
+            System.err.println("Falha ao enviar e-mail para funcionário-cliente: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @RabbitListener(queues = "alteraStatus.fila")
-    public void processMessageAlteraStatus(String messageJson) throws Exception {
-        SendMailQueueAlteraStatus request = objectMapper.readValue(messageJson, SendMailQueueAlteraStatus.class);
-        UserMail userMail = msgRepository.getUserMail(request.getNumeroConta());
-        switch (request.getNewStatus()) {
-            case 2:
-                emailService.sendEmailAtivaConta(userMail);
-            case 3:
-                emailService.sendEmailContaRejeitada(userMail);
+    public void processMessageAlteraStatus(String messageJson) {
+        try {
+            SendMailQueueAlteraStatus request = objectMapper.readValue(messageJson, SendMailQueueAlteraStatus.class);
+            UserMail userMail = msgRepository.getUserMail(request.getNumeroConta());
+            switch (request.getNewStatus()) {
+                case 2:
+                    emailService.sendEmailAtivaConta(userMail);
+                case 3:
+                    emailService.sendEmailContaRejeitada(userMail);
+            }
+            System.out.println("E-mail enviado para: " + userMail.getEmail());
+        } catch (Exception e) {
+            System.err.println("Falha ao alterar status e enviar e-mail: " + e.getMessage());
+            e.printStackTrace();
         }
-        System.out.println("E-mail enviado para: " + userMail.getEmail());
     }
 }
