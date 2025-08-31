@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendMailQueueAlteraStatus {
+public class MailQueueChangeStatus {
 
     private int numeroConta;
     private int newStatus;

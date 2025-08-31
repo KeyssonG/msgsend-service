@@ -1,5 +1,6 @@
 package keysson.apis.msgsend.model;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,11 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendMailQueueFuncionarioCliente {
+public class MailQueueEmployee {
 
     private String email;
     private String username;
     private String plainPassword;
-    private int idEmpresa;
 }
-

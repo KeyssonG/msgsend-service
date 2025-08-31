@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendMailQueueEmpresa {
-    private Integer idEmpresa;
-    private String name;
+public class MailQueueEmployeeClient {
+
     private String email;
-    private String cnpj;
     private String username;
+    private String plainPassword;
+    private int idEmpresa;
 }

@@ -1,5 +1,7 @@
 package keysson.apis.msgsend.consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import keysson.apis.msgsend.model.*;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,61 +17,58 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EmailConsumer {
 
+    private static final Logger logger = LoggerFactory.getLogger(EmailConsumer.class);
+
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
     private final MsgRepository msgRepository;
 
     @RabbitListener(queues = "empresa.fila")
-    public void processMessageEmpresa(String messageJson) {
+    public void processCompanyMessage(String messageJson) {
         try {
-            SendMailQueueEmpresa request = objectMapper.readValue(messageJson, SendMailQueueEmpresa.class);
-            emailService.sendEmailEmpresa(request);
-            System.out.println("E-mail enviado para: " + request.getEmail());
+            MailQueueCompany request = objectMapper.readValue(messageJson, MailQueueCompany.class);
+            emailService.sendCompanyEmail(request);
+            logger.info("E-mail enviado para: {}", request.getEmail());
         } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail para empresa: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Falha ao enviar e-mail para empresa: {}", e.getMessage(), e);
         }
     }
 
     @RabbitListener(queues = "funcionario.fila")
-    public void processMessageFuncionario(String messageJson) {
+    public void processEmployeeMessage(String messageJson) {
         try {
-            SendMailQueueFuncionario request = objectMapper.readValue(messageJson, SendMailQueueFuncionario.class);
-            emailService.sendEmailFuncionario(request);
-            System.out.println("E-mail enviado para: " + request.getEmail());
+            MailQueueEmployee request = objectMapper.readValue(messageJson, MailQueueEmployee.class);
+            emailService.sendEmployeeEmail(request);
+            logger.info("E-mail enviado para: {}", request.getEmail());
         } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail para funcionário: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Falha ao enviar e-mail para funcionário: {}", e.getMessage(), e);
         }
     }
 
     @RabbitListener(queues = "funcionario-cliente.fila")
-    public void processMessageFuncionarioCliente(String messageJson) {
+    public void processEmployeeClientMessage(String messageJson) {
         try {
-            SendMailQueueFuncionarioCliente request = objectMapper.readValue(messageJson, SendMailQueueFuncionarioCliente.class);
-            emailService.sendEmailFuncionarioCliente(request);
-            System.out.println("E-mail enviado para: " + request.getEmail());
+            MailQueueEmployeeClient request = objectMapper.readValue(messageJson, MailQueueEmployeeClient.class);
+            emailService.sendEmployeeClientEmail(request);
+            logger.info("E-mail enviado para: {}", request.getEmail());
         } catch (Exception e) {
-            System.err.println("Falha ao enviar e-mail para funcionário-cliente: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Falha ao enviar e-mail para funcionário-cliente: {}", e.getMessage(), e);
         }
     }
 
     @RabbitListener(queues = "alteraStatus.fila")
-    public void processMessageAlteraStatus(String messageJson) {
+    public void processStatusChangeMessage(String messageJson) {
         try {
-            SendMailQueueAlteraStatus request = objectMapper.readValue(messageJson, SendMailQueueAlteraStatus.class);
-            UserMail userMail = msgRepository.getUserMail(request.getNumeroConta());
-            switch (request.getNewStatus()) {
-                case 2:
-                    emailService.sendEmailAtivaConta(userMail);
-                case 3:
-                    emailService.sendEmailContaRejeitada(userMail);
+            MailQueueChangeStatus request = objectMapper.readValue(messageJson, MailQueueChangeStatus.class);
+            MailUser userMail = msgRepository.fetchUserMail(request.getNumeroConta());
+            if (request.getNewStatus() == 2) {
+                emailService.sendAccountActivationEmail(userMail);
+            } else if (request.getNewStatus() == 3) {
+                emailService.sendAccountRejectionEmail(userMail);
             }
-            System.out.println("E-mail enviado para: " + userMail.getEmail());
+            logger.info("E-mail enviado para: {}", userMail.getEmail());
         } catch (Exception e) {
-            System.err.println("Falha ao alterar status e enviar e-mail: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Falha ao alterar status e enviar e-mail: {}", e.getMessage(), e);
         }
     }
 }

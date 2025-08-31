@@ -2,8 +2,7 @@ package keysson.apis.msgsend.repository;
 
 
 import keysson.apis.msgsend.mapper.UserMailRowMapper;
-import keysson.apis.msgsend.model.UserMail;
-import org.apache.catalina.User;
+import keysson.apis.msgsend.model.MailUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -29,8 +28,8 @@ public class MsgRepository {
             WHERE c.numero_conta = ?
             """;
 
-    public UserMail getUserMail(int numeroConta) {
-        return jdbcTemplate.query(FIND_USER_MAIL, new Object[]{numeroConta}, rs -> {
+    public MailUser fetchUserMail(int accountNumber) {
+        return jdbcTemplate.query(FIND_USER_MAIL, new Object[]{accountNumber}, rs -> {
             if (rs.next()) {
                 return userMailRowMapper.mapRow(rs, 1);
             }
