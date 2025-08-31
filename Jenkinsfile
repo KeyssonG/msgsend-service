@@ -40,13 +40,13 @@ pipeline {
             }
         }
 
-        stage('Pubat da Imagem para Docker Hub') {
+        stage('push da Imagem para Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat """
                         echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker pubat %DOCKERHUB_IMAGE%:%IMAGE_TAG%
-                        docker pubat %DOCKERHUB_IMAGE%:latest
+                        docker push %DOCKERHUB_IMAGE%:%IMAGE_TAG%
+                        docker push %DOCKERHUB_IMAGE%:latest
                     """
                 }
             }
