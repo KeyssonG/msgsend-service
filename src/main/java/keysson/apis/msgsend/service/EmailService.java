@@ -1,15 +1,12 @@
 package keysson.apis.msgsend.service;
 
-import keysson.apis.msgsend.model.MailQueueEmployeeClient;
+import keysson.apis.msgsend.model.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import keysson.apis.msgsend.model.MailQueueCompany;
-import keysson.apis.msgsend.model.MailQueueEmployee;
-import keysson.apis.msgsend.model.MailUser;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -147,6 +144,28 @@ public class EmailService {
             """, userMail.getUsername());
 
         helper.setTo(userMail.getEmail());
+        helper.setSubject(subject);
+        helper.setText(text, false);
+
+        mailSender.send(message);
+    }
+
+    public void sendTokenResetPassword(MailQueueRequestPasswordChange request) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        String subject = "Token de redefinição de senha";
+        String text = String.format("""
+            Olá %s,
+
+            Este é o seu token para redefinição de senha: %s
+            Insira o token para prosseguir com a alteração da sua senha.
+
+            Atenciosamente,
+            Equipe Multithread
+            """, request.getUsername(), request.getToken());
+
+        helper.setTo(request.getEmail());
         helper.setSubject(subject);
         helper.setText(text, false);
 

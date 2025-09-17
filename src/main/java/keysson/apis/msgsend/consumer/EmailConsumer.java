@@ -71,4 +71,15 @@ public class EmailConsumer {
             logger.error("Falha ao alterar status e enviar e-mail: {}", e.getMessage(), e);
         }
     }
+
+    @RabbitListener(queues = "password.reset.queue")
+    public void processSendTokenResetPassword(String messageJson) {
+        try {
+            MailQueueRequestPasswordChange request = objectMapper.readValue(messageJson, MailQueueRequestPasswordChange.class);
+            emailService.sendTokenResetPassword(request);
+            logger.info("E-mail com Token para redefinição de senha enviado para: {}", request.getEmail());
+        } catch (Exception e) {
+            logger.error("Falha ao enviar e-mail com Token para redefinição de senha: {}", e.getMessage(), e);
+        }
+    }
 }
