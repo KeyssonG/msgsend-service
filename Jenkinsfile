@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     options {
-        // Evita checkout automático duplicado do Declarative Pipeline
-        skipDefaultCheckout(true)
         disableConcurrentBuilds()
     }
 
@@ -14,13 +12,6 @@ pipeline {
     }
 
     stages {
-
-        stage('Checkout SCM') {
-            steps {
-                // Checkout controlado (repo completo com .git)
-                checkout scm
-            }
-        }
 
         stage('Verificar Branch') {
             when {
@@ -35,7 +26,6 @@ pipeline {
             steps {
                 sh """
                     docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} .
-                    docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest
                 """
             }
         }
@@ -52,7 +42,6 @@ pipeline {
                     sh """
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_IMAGE}:latest
                     """
                 }
             }
@@ -69,11 +58,11 @@ pipeline {
                     git add ${DEPLOYMENT_FILE}
 
                     if ! git diff --cached --quiet; then
-                        git commit -m "Atualiza imagem Docker para ${IMAGE_TAG}"
+                        git commit -m "Atualiza imagem Docker"
                         git push origin master
-                        echo "Deployment atualizado e enviado para o Git"
+                        echo "Deployment atualizado no Git"
                     else
-                        echo "Nenhuma alteração detectada no deployment"
+                        echo "Nenhuma alteração detectada"
                     fi
                 """
             }
@@ -82,10 +71,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline concluída com sucesso! ArgoCD aplicará as mudanças automaticamente 🚀"
+            echo "✅ Pipeline executada com sucesso"
         }
         failure {
-            echo "❌ Pipeline falhou. Verifique os logs acima."
+            echo "❌ Pipeline falhou"
         }
     }
 }
