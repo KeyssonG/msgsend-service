@@ -5,6 +5,7 @@ pipeline {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
         DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
         IMAGE_TAG = "latest"
+        WSL_DISTRO = "Ubuntu"
     }
 
     triggers {
@@ -28,7 +29,7 @@ pipeline {
 
         stage('Checkout do Código') {
             steps {
-                git credentialsId: 'github', // corrigido (case-sensitive)
+                git credentialsId: 'github',
                     url: 'https://github.com/KeyssonG/api-msgsend.git',
                     branch: 'master'
             }
@@ -37,8 +38,8 @@ pipeline {
         stage('Build da Imagem Docker') {
             steps {
                 bat """
-                wsl docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} .
-                wsl docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest
+                wsl -d %WSL_DISTRO% -- bash -lc "docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ."
+                wsl -d %WSL_DISTRO% -- bash -lc "docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest"
                 """
             }
         }
@@ -53,9 +54,9 @@ pipeline {
                     )
                 ]) {
                     bat """
-                    wsl echo %DOCKER_PASS% | wsl docker login -u %DOCKER_USER% --password-stdin
-                    wsl docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
-                    wsl docker push ${DOCKERHUB_IMAGE}:latest
+                    wsl -d %WSL_DISTRO% -- bash -lc "echo '%DOCKER_PASS%' | docker login -u '%DOCKER_USER%' --password-stdin"
+                    wsl -d %WSL_DISTRO% -- bash -lc "docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}"
+                    wsl -d %WSL_DISTRO% -- bash -lc "docker push ${DOCKERHUB_IMAGE}:latest"
                     """
                 }
             }
@@ -64,12 +65,12 @@ pipeline {
         stage('Atualizar deployment.yaml') {
             steps {
                 bat """
-                wsl sed -i 's|image:.*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}
+                wsl -d %WSL_DISTRO% -- bash -lc "sed -i 's|image:.*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}"
 
-                wsl git config user.email "jenkins@pipeline.com"
-                wsl git config user.name "Jenkins"
-                wsl git add ${DEPLOYMENT_FILE}
-                wsl git diff --cached --quiet || wsl git commit -m "Atualiza imagem Docker para latest"
+                wsl -d %WSL_DISTRO% -- bash -lc "git config user.email 'jenkins@pipeline.com'"
+                wsl -d %WSL_DISTRO% -- bash -lc "git config user.name 'Jenkins'"
+                wsl -d %WSL_DISTRO% -- bash -lc "git add ${DEPLOYMENT_FILE}"
+                wsl -d %WSL_DISTRO% -- bash -lc \"git diff --cached --quiet || git commit -m 'Atualiza imagem Docker para latest'\"
                 """
             }
         }
