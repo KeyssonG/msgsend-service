@@ -57,6 +57,8 @@ pipeline {
         stage('Atualizar deployment.yaml (GitOps)') {
             steps {
                 sh '''
+                    git checkout master
+
                     git config user.email "jenkins@pipeline.com"
                     git config user.name "Jenkins"
 
