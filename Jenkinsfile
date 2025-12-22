@@ -1,13 +1,26 @@
 pipeline {
     agent any
 
+    options {
+        // Evita checkout automático duplicado do Declarative Pipeline
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+    }
+
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
-        DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
         IMAGE_TAG = "latest"
+        DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
     }
 
     stages {
+
+        stage('Checkout SCM') {
+            steps {
+                // Checkout controlado (repo completo com .git)
+                checkout scm
+            }
+        }
 
         stage('Verificar Branch') {
             when {
@@ -45,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Atualizar deployment.yaml') {
+        stage('Atualizar deployment.yaml (GitOps)') {
             steps {
                 sh """
                     git config user.email "jenkins@pipeline.com"
@@ -56,13 +69,23 @@ pipeline {
                     git add ${DEPLOYMENT_FILE}
 
                     if ! git diff --cached --quiet; then
-                      git commit -m "Atualiza imagem Docker para ${IMAGE_TAG}"
-                      git push origin master
+                        git commit -m "Atualiza imagem Docker para ${IMAGE_TAG}"
+                        git push origin master
+                        echo "Deployment atualizado e enviado para o Git"
                     else
-                      echo "Nenhuma alteração detectada no deployment."
+                        echo "Nenhuma alteração detectada no deployment"
                     fi
                 """
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline concluída com sucesso! ArgoCD aplicará as mudanças automaticamente 🚀"
+        }
+        failure {
+            echo "❌ Pipeline falhou. Verifique os logs acima."
         }
     }
 }
