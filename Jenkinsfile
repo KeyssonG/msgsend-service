@@ -5,7 +5,6 @@ pipeline {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
         DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
         IMAGE_TAG = "latest"
-        WSL_DISTRO = "Ubuntu"
     }
 
     triggers {
@@ -29,7 +28,7 @@ pipeline {
 
         stage('Checkout do Código') {
             steps {
-                git credentialsId: 'github',
+                git credentialsId: 'Github',
                     url: 'https://github.com/KeyssonG/api-msgsend.git',
                     branch: 'master'
             }
@@ -37,9 +36,9 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                bat """
-                wsl -d %WSL_DISTRO% -- bash -lc "docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ."
-                wsl -d %WSL_DISTRO% -- bash -lc "docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest"
+                sh """
+                    docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} .
+                    docker tag ${DOCKERHUB_IMAGE}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:latest
                 """
             }
         }
@@ -53,10 +52,10 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    bat """
-                    wsl -d %WSL_DISTRO% -- bash -lc "echo '%DOCKER_PASS%' | docker login -u '%DOCKER_USER%' --password-stdin"
-                    wsl -d %WSL_DISTRO% -- bash -lc "docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}"
-                    wsl -d %WSL_DISTRO% -- bash -lc "docker push ${DOCKERHUB_IMAGE}:latest"
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
+                        docker push ${DOCKERHUB_IMAGE}:latest
                     """
                 }
             }
@@ -64,24 +63,33 @@ pipeline {
 
         stage('Atualizar deployment.yaml') {
             steps {
-                bat """
-                wsl -d %WSL_DISTRO% -- bash -lc "sed -i 's|image:.*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}"
+                script {
+                    sh """
+                        git config user.email "jenkins@pipeline.com"
+                        git config user.name "Jenkins"
 
-                wsl -d %WSL_DISTRO% -- bash -lc "git config user.email 'jenkins@pipeline.com'"
-                wsl -d %WSL_DISTRO% -- bash -lc "git config user.name 'Jenkins'"
-                wsl -d %WSL_DISTRO% -- bash -lc "git add ${DEPLOYMENT_FILE}"
-                wsl -d %WSL_DISTRO% -- bash -lc \"git diff --cached --quiet || git commit -m 'Atualiza imagem Docker para latest'\"
-                """
+                        sed -i 's|image: .*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
+
+                        git add ${DEPLOYMENT_FILE}
+
+                        if ! git diff --cached --quiet; then
+                          git commit -m "Atualiza imagem Docker para ${IMAGE_TAG}"
+                          echo "Alterações detectadas e commit realizado."
+                        else
+                          echo "Nenhuma alteração detectada no deployment."
+                        fi
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline concluída com sucesso! A imagem '${DOCKERHUB_IMAGE}:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente. 🚀"
+            echo "Pipeline concluída com sucesso! A imagem '${DOCKERHUB_IMAGE}:latest' foi atualizada e o ArgoCD aplicará as alterações automaticamente 🚀"
         }
         failure {
-            echo "Erro na pipeline. Confira os logs para mais detalhes."
+            echo "Erro na pipeline. Confira os logs para mais detalhes ❌"
         }
     }
 }
