@@ -14,6 +14,12 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Verificar Branch') {
             when {
                 branch 'master'
