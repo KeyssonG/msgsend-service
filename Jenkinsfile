@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     options {
+        skipDefaultCheckout(true)
         disableConcurrentBuilds()
     }
 
@@ -24,9 +25,9 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                sh """
-                    docker build -t ${DOCKERHUB_IMAGE}:${IMAGE_TAG} .
-                """
+                sh '''
+                    docker build -t $DOCKERHUB_IMAGE:$IMAGE_TAG .
+                '''
             }
         }
 
@@ -39,32 +40,31 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    sh """
+                    sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
-                    """
+                        docker push $DOCKERHUB_IMAGE:$IMAGE_TAG
+                    '''
                 }
             }
         }
 
         stage('Atualizar deployment.yaml (GitOps)') {
             steps {
-                sh """
+                sh '''
                     git config user.email "jenkins@pipeline.com"
                     git config user.name "Jenkins"
 
-                    sed -i 's|image: .*|image: ${DOCKERHUB_IMAGE}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
+                    sed -i "s|image: .*|image: $DOCKERHUB_IMAGE:$IMAGE_TAG|" $DEPLOYMENT_FILE
 
-                    git add ${DEPLOYMENT_FILE}
+                    git add $DEPLOYMENT_FILE
 
                     if ! git diff --cached --quiet; then
                         git commit -m "Atualiza imagem Docker"
                         git push origin master
-                        echo "Deployment atualizado no Git"
                     else
-                        echo "Nenhuma alteração detectada"
+                        echo "Nenhuma alteração para commit"
                     fi
-                """
+                '''
             }
         }
     }
