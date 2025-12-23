@@ -1,24 +1,21 @@
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout(true)
-        disableConcurrentBuilds()
-    }
-
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
         IMAGE_TAG = "latest"
         DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
     }
 
-    stages {
+    triggers {
+        pollSCM('* * * * *')
+    }
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
 
         stage('Verificar Branch') {
             when {
@@ -29,10 +26,17 @@ pipeline {
             }
         }
 
+        stage('Checkout do Código') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build da Imagem Docker') {
             steps {
                 sh '''
                     docker build -t $DOCKERHUB_IMAGE:$IMAGE_TAG .
+                    docker tag $DOCKERHUB_IMAGE:$IMAGE_TAG $DOCKERHUB_IMAGE:latest
                 '''
             }
         }
@@ -49,6 +53,7 @@ pipeline {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push $DOCKERHUB_IMAGE:$IMAGE_TAG
+                        docker push $DOCKERHUB_IMAGE:latest
                     '''
                 }
             }
@@ -56,33 +61,44 @@ pipeline {
 
         stage('Atualizar deployment.yaml (GitOps)') {
             steps {
-                sh '''
-                    git checkout master
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'GitHub',
+                        usernameVariable: 'GIT_USER',
+                        passwordVariable: 'GIT_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        git checkout master
 
-                    git config user.email "jenkins@pipeline.com"
-                    git config user.name "Jenkins"
+                        git config user.email "jenkins@pipeline.com"
+                        git config user.name "Jenkins"
 
-                    sed -i "s|image: .*|image: $DOCKERHUB_IMAGE:$IMAGE_TAG|" $DEPLOYMENT_FILE
+                        git remote set-url origin https://$GIT_USER:$GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
 
-                    git add $DEPLOYMENT_FILE
+                        sed -i "s|image: .*|image: $DOCKERHUB_IMAGE:$IMAGE_TAG|" $DEPLOYMENT_FILE
 
-                    if ! git diff --cached --quiet; then
-                        git commit -m "Atualiza imagem Docker"
-                        git push origin master
-                    else
-                        echo "Nenhuma alteração para commit"
-                    fi
-                '''
+                        git add $DEPLOYMENT_FILE
+
+                        if ! git diff --cached --quiet; then
+                            git commit -m "Atualiza imagem Docker para latest"
+                            git push origin master
+                            echo "Alterações detectadas e enviadas ao repositório."
+                        else
+                            echo "Nenhuma alteração detectada no deployment.yaml"
+                        fi
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Pipeline executada com sucesso"
+            echo "Pipeline concluída com sucesso! 🚀 Imagem atualizada e GitOps acionado."
         }
         failure {
-            echo "❌ Pipeline falhou"
+            echo "❌ Erro na pipeline. Verifique os logs."
         }
     }
 }
