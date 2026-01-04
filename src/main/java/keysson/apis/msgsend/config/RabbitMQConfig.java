@@ -33,6 +33,10 @@ public class RabbitMQConfig {
         // Configuração de pré-busca
         factory.setPrefetchCount(20); // Define o número de mensagens pré-buscadas por consumidor
 
+        // Configuração para não falhar quando uma fila não existe
+        // Isso permite que a aplicação continue consumindo outras filas mesmo se algumas não existirem
+        factory.setMissingQueuesFatal(false);
+
         return factory;
     }
 }
