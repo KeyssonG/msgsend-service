@@ -2,12 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: msgsend-service
+  namespace: producao
+  labels:
+    app: msgsend
 spec:
   selector:
     app: msgsend
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8088
       targetPort: 8088
-      nodPort: 31003
-  type: LoadBalancer  # Ou NodePort
+      nodePort: 31008
+  type: LoadBalancer

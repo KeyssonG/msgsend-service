@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=builder /app/msgsend.jar /app/msgsend.jar
 
 # Expõe a porta da aplicação
-EXPOSE 8083
+EXPOSE 8088
 
 # Comando de inicialização
 CMD ["java", "-jar", "/app/msgsend.jar"]

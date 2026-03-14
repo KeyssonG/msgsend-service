@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: msgsend-container
-          image: keyssong/msgsend:latest  # 🔹 Buscar no Docker Hub
-          imagePullPolicy: Always           # 🔹 Sempre buscar a versão mais recente
+          image: keyssong/msgsend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8088
           envFrom:
