@@ -13,5 +13,5 @@ spec:
       protocol: TCP
       port: 8088
       targetPort: 8088
-      nodePort: 31008
-  type: LoadBalancer
+      nodePort: 31005
+  type: NodePort
