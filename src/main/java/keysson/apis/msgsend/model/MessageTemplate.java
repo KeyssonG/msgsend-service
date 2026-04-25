@@ -19,7 +19,7 @@ public class MessageTemplate {
     @Column(name = "template_code", nullable = false, unique = true)
     private String templateCode;
 
-    @Column(name = "subject_tamplete", nullable = false)
+    @Column(name = "subject_template", nullable = false)
     private String subjectTemplate;
 
     @Column(name = "body_template", nullable = false, columnDefinition = "TEXT")
