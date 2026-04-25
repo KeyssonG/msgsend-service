@@ -30,7 +30,7 @@ public class EmailService {
 
         String subject = subjectFormat.contains("%s") ? String.format(subjectFormat, args[0]) : subjectFormat;
 
-        String text = String.format(bodyFormat, args);
+        String text = String.format(bodyFormat, args).replace("\\n", "\n");
 
         helper.setTo(to);
         helper.setSubject(subject);
