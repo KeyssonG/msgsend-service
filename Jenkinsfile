@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'docker' }
 
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
@@ -29,19 +29,6 @@ pipeline {
         stage('Checkout do Código') {
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Preparar Ambiente') {
-            steps {
-                sh '''
-                    if ! command -v docker &> /dev/null; then
-                        echo "Docker não encontrado. Instalando..."
-                        sudo apt-get update -qq
-                        sudo apt-get install -y -qq docker.io
-                    fi
-                    docker --version
-                '''
             }
         }
 
