@@ -35,7 +35,7 @@ pipeline {
         stage('Build da Imagem Docker') {
             steps {
                 sh '''
-                    apk add --no-cache docker-cli
+                    apt-get update -qq && apt-get install -y -qq docker.io
                     docker build -t $DOCKERHUB_IMAGE:$IMAGE_TAG .
                     docker tag $DOCKERHUB_IMAGE:$IMAGE_TAG $DOCKERHUB_IMAGE:latest
                 '''
