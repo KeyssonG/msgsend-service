@@ -37,8 +37,7 @@ pipeline {
             steps {
                 powershell script: '''
                     $env:Path = "$env:DOCKER_PATH;$env:Path"
-                    docker build -t $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG .
-                    docker tag $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG $env:DOCKERHUB_IMAGE:latest
+                    docker build -t "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}" .
                 '''
             }
         }
@@ -55,8 +54,7 @@ pipeline {
                     powershell script: '''
                         $env:Path = "$env:DOCKER_PATH;$env:Path"
                         "$env:DOCKER_PASS" | docker login -u "$env:DOCKER_USER" --password-stdin
-                        docker push $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG
-                        docker push $env:DOCKERHUB_IMAGE:latest
+                        docker push "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}"
                     '''
                 }
             }
