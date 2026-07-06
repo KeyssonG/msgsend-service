@@ -5,6 +5,7 @@ pipeline {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
         IMAGE_TAG = "latest"
         DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
+        DOCKER_PATH = "C:\\Users\\keyss\\AppData\\Local\\Programs\\Rancher Desktop\\resources\\resources\\win32\\bin"
     }
 
     triggers {
@@ -35,6 +36,7 @@ pipeline {
         stage('Build da Imagem Docker') {
             steps {
                 powershell script: '''
+                    $env:Path = "$env:DOCKER_PATH;$env:Path"
                     docker build -t $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG .
                     docker tag $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG $env:DOCKERHUB_IMAGE:latest
                 '''
@@ -51,6 +53,7 @@ pipeline {
                     )
                 ]) {
                     powershell script: '''
+                        $env:Path = "$env:DOCKER_PATH;$env:Path"
                         "$env:DOCKER_PASS" | docker login -u "$env:DOCKER_USER" --password-stdin
                         docker push $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG
                         docker push $env:DOCKERHUB_IMAGE:latest
@@ -74,7 +77,7 @@ pipeline {
                         git config user.email "jenkins@pipeline.com"
                         git config user.name "Jenkins"
 
-                        git remote set-url origin https://$env:GIT_USER@$env:GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
+                        git remote set-url origin https://$env:GIT_USER:$env:GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
 
                         (Get-Content -Path $env:DEPLOYMENT_FILE) -replace 'image: .*', "image: $env:DOCKERHUB_IMAGE`:$env:IMAGE_TAG" | Set-Content -Path $env:DEPLOYMENT_FILE
 
