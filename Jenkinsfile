@@ -53,8 +53,7 @@ pipeline {
                 ]) {
                     powershell script: '''
                         $env:Path = "$env:DOCKER_PATH;$env:Path"
-                        docker logout
-                        "$env:DOCKER_PASS" | docker login -u "$env:DOCKER_USER" --password-stdin
+                        docker login -u "$env:DOCKER_USER" --password "$env:DOCKER_PASS"
                         docker push "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}"
                     '''
                 }
