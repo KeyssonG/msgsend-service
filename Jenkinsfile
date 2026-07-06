@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker' }
+    agent { label 'windows' }
 
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
@@ -34,10 +34,9 @@ pipeline {
 
         stage('Build da Imagem Docker') {
             steps {
-                sh '''
-                    apt-get update -qq && apt-get install -y -qq docker.io
-                    docker build -t $DOCKERHUB_IMAGE:$IMAGE_TAG .
-                    docker tag $DOCKERHUB_IMAGE:$IMAGE_TAG $DOCKERHUB_IMAGE:latest
+                powershell script: '''
+                    docker build -t $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG .
+                    docker tag $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG $env:DOCKERHUB_IMAGE:latest
                 '''
             }
         }
@@ -51,10 +50,10 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $DOCKERHUB_IMAGE:$IMAGE_TAG
-                        docker push $DOCKERHUB_IMAGE:latest
+                    powershell script: '''
+                        "$env:DOCKER_PASS" | docker login -u "$env:DOCKER_USER" --password-stdin
+                        docker push $env:DOCKERHUB_IMAGE:$env:IMAGE_TAG
+                        docker push $env:DOCKERHUB_IMAGE:latest
                     '''
                 }
             }
@@ -69,25 +68,25 @@ pipeline {
                         passwordVariable: 'GIT_TOKEN'
                     )
                 ]) {
-                    sh '''
+                    powershell script: '''
                         git checkout master
 
                         git config user.email "jenkins@pipeline.com"
                         git config user.name "Jenkins"
 
-                        git remote set-url origin https://$GIT_USER:$GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
+                        git remote set-url origin https://$env:GIT_USER@$env:GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
 
-                        sed -i "s|image: .*|image: $DOCKERHUB_IMAGE:$IMAGE_TAG|" $DEPLOYMENT_FILE
+                        (Get-Content -Path $env:DEPLOYMENT_FILE) -replace 'image: .*', "image: $env:DOCKERHUB_IMAGE`:$env:IMAGE_TAG" | Set-Content -Path $env:DEPLOYMENT_FILE
 
-                        git add $DEPLOYMENT_FILE
+                        git add $env:DEPLOYMENT_FILE
 
-                        if ! git diff --cached --quiet; then
+                        git diff --cached --quiet; if ($LASTEXITCODE -ne 0) {
                             git commit -m "Atualiza imagem Docker para latest"
                             git push origin master
                             echo "Alterações detectadas e enviadas ao repositório."
-                        else
+                        } else {
                             echo "Nenhuma alteração detectada no deployment.yaml"
-                        fi
+                        }
                     '''
                 }
             }
@@ -96,10 +95,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline concluída com sucesso! 🚀 Imagem atualizada e GitOps acionado."
+            echo "Pipeline concluída com sucesso! Imagem atualizada e GitOps acionado."
         }
         failure {
-            echo "❌ Erro na pipeline. Verifique os logs."
+            echo "Erro na pipeline. Verifique os logs."
         }
     }
 }
