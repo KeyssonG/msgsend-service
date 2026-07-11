@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
-        IMAGE_TAG = "latest"
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
         DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
         DOCKER_PATH = "C:\\Users\\keyss\\AppData\\Local\\Programs\\Rancher Desktop\\resources\\resources\\win32\\bin"
     }
@@ -38,7 +38,7 @@ pipeline {
                 powershell script: '''
                     $env:Path = "$env:DOCKER_PATH;$env:Path"
                     $env:DOCKER_BUILDKIT = 1
-                    docker build -t "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}" .
+                    docker build -t "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}" -t "${env:DOCKERHUB_IMAGE}:latest" .
                 '''
             }
         }
@@ -56,6 +56,7 @@ pipeline {
                         $env:Path = "$env:DOCKER_PATH;$env:Path"
                         docker login -u "$env:DOCKER_USER" --password "$env:DOCKER_PASS"
                         docker push "${env:DOCKERHUB_IMAGE}:${env:IMAGE_TAG}"
+                        docker push "${env:DOCKERHUB_IMAGE}:latest"
                     '''
                 }
             }
@@ -71,19 +72,21 @@ pipeline {
                     )
                 ]) {
                     powershell script: '''
-                        git checkout master
-
                         git config user.email "jenkins@pipeline.com"
                         git config user.name "Jenkins"
 
                         git remote set-url origin https://$env:GIT_USER:$env:GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
+
+                        git fetch origin
+                        git checkout master
+                        git reset --hard origin/master
 
                         (Get-Content -Path $env:DEPLOYMENT_FILE) -replace 'image: .*', "image: $env:DOCKERHUB_IMAGE`:$env:IMAGE_TAG" | Set-Content -Path $env:DEPLOYMENT_FILE
 
                         git add $env:DEPLOYMENT_FILE
 
                         git diff --cached --quiet; if ($LASTEXITCODE -ne 0) {
-                            git commit -m "Atualiza imagem Docker para latest"
+                            git commit -m "Atualiza imagem Docker para ${env:IMAGE_TAG}"
                             git push origin master
                             echo "Alterações detectadas e enviadas ao repositório."
                         } else {
