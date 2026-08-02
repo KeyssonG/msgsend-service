@@ -4,12 +4,14 @@ pipeline {
     environment {
         DOCKERHUB_IMAGE = "keyssong/msgsend"
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        DEPLOYMENT_FILE = "k8s/msgsend-deployment.yaml"
+        GITOPS_REPO = "KeyssonG/k8s-gitops"
+        GITOPS_BRANCH = "main"
+        DEPLOYMENT_FILE = "msgsend/msgsend-deployment.yaml"
         DOCKER_PATH = "C:\\Users\\keyss\\AppData\\Local\\Programs\\Rancher Desktop\\resources\\resources\\win32\\bin"
     }
 
     triggers {
-        pollSCM('* * * * *')
+        pollSCM('H/1 * * * *')
     }
 
     options {
@@ -72,26 +74,26 @@ pipeline {
                     )
                 ]) {
                     powershell script: '''
-                        git config user.email "jenkins@pipeline.com"
-                        git config user.name "Jenkins"
+                        $gitopsUrl = "https://$env:GIT_USER`:$env:GIT_TOKEN@github.com/$env:GITOPS_REPO.git"
+                        $gitopsDir = "$env:WORKSPACE\\k8s-gitops"
 
-                        git remote set-url origin https://$env:GIT_USER:$env:GIT_TOKEN@github.com/KeyssonG/msgsend-service.git
+                        if (Test-Path $gitopsDir) { Remove-Item -Recurse -Force $gitopsDir }
+                        git clone --quiet $gitopsUrl $gitopsDir
 
-                        git fetch origin
-                        git checkout master
-                        git reset --hard origin/master
+                        $manifest = "$gitopsDir\\$env:DEPLOYMENT_FILE"
+                        (Get-Content -Path $manifest) -replace 'image: .*', "image: $env:DOCKERHUB_IMAGE`:$env:IMAGE_TAG" | Set-Content -Path $manifest
 
-                        (Get-Content -Path $env:DEPLOYMENT_FILE) -replace 'image: .*', "image: $env:DOCKERHUB_IMAGE`:$env:IMAGE_TAG" | Set-Content -Path $env:DEPLOYMENT_FILE
+                        git -C $gitopsDir add $env:DEPLOYMENT_FILE
 
-                        git add $env:DEPLOYMENT_FILE
-
-                        git diff --cached --quiet; if ($LASTEXITCODE -ne 0) {
-                            git commit -m "Atualiza imagem Docker para ${env:IMAGE_TAG}"
-                            git push origin master
-                            echo "Alterações detectadas e enviadas ao repositório."
+                        git -C $gitopsDir diff --cached --quiet; if ($LASTEXITCODE -ne 0) {
+                            git -C $gitopsDir -c user.name=Jenkins -c user.email=jenkins@pipeline.com commit -m "msgsend: atualiza imagem Docker para ${env:IMAGE_TAG}"
+                            git -C $gitopsDir push origin $env:GITOPS_BRANCH
+                            echo "Deployment.yaml atualizado via GitOps (repo $env:GITOPS_REPO)."
                         } else {
-                            echo "Nenhuma alteração detectada no deployment.yaml"
+                            echo "Nenhuma alteração no deployment.yaml"
                         }
+
+                        git -C $gitopsDir remote set-url origin "https://github.com/$env:GITOPS_REPO.git"
                     '''
                 }
             }
