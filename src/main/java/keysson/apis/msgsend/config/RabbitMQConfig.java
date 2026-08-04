@@ -50,6 +50,8 @@ public class RabbitMQConfig {
 
         factory.setDefaultRequeueRejected(false);
 
+        factory.setMessageConverter(new NullSafeMessageConverter());
+
         factory.setReceiveTimeout(30000L);
 
         factory.setPrefetchCount(20);
