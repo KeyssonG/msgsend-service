@@ -36,6 +36,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue backupQueue() {
+        return new Queue("backup.fila", true);
+    }
+
+    @Bean
     public RabbitListenerContainerFactory<?> rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);

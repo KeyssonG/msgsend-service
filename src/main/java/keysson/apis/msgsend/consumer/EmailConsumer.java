@@ -82,4 +82,15 @@ public class EmailConsumer {
             logger.error("Falha ao enviar e-mail com Token para redefinição de senha: {}", e.getMessage(), e);
         }
     }
+
+    @RabbitListener(queues = "backup.fila")
+    public void processBackupNotification(String messageJson) {
+        try {
+            MailQueueBackup request = objectMapper.readValue(messageJson, MailQueueBackup.class);
+            emailService.sendBackupNotification(request);
+            logger.info("Notificação de backup enviada para: {}", request.getEmail());
+        } catch (Exception e) {
+            logger.error("Falha ao enviar notificação de backup: {}", e.getMessage(), e);
+        }
+    }
 }

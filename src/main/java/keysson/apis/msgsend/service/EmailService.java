@@ -73,4 +73,23 @@ public class EmailService {
       sendEmail(request.getEmail(), template.getSubjectTemplate(), template.getBodyTemplate(),
               request.getUsername(), request.getToken());
     }
+
+    public void sendBackupNotification(MailQueueBackup request) throws MessagingException {
+        boolean success = "success".equalsIgnoreCase(request.getStatus());
+        String subject = String.format(
+                "Backup PostgreSQL %s - %s",
+                success ? "concluído com sucesso" : "FALHOU",
+                request.getDatabase());
+
+        String body = String.join("\n",
+                "Backup do banco de dados PostgreSQL",
+                "-------------------------------------",
+                "Banco: " + request.getDatabase(),
+                "Status: " + (success ? "Sucesso" : "Erro"),
+                "Arquivo: " + (request.getFilename() != null ? request.getFilename() : "-"),
+                "Data/Hora: " + (request.getTimestamp() != null ? request.getTimestamp() : "-"),
+                "Detalhe: " + (request.getMessage() != null ? request.getMessage() : "-"));
+
+        sendEmail(request.getEmail(), subject, body);
+    }
 }
